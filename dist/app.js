@@ -4,7 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var Cookies = require('cookies');
 var random_name = require('node-random-name');
-app.listen(80, function () {
+app.listen(process.env.PORT || 80, function () {
     console.log('connected to *:80');
 });
 function handler(req, res) {
