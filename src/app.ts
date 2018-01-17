@@ -6,7 +6,7 @@ var Cookies = require('cookies');
 var random_name = require('node-random-name');
 
 app.listen(80, function () {
-    console.log('connect to *:80');
+    console.log('connected to *:80');
 });
 
 function handler(req, res) {
