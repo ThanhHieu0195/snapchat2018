@@ -4,6 +4,7 @@
   "description": "",
   "main": "./dist/app.js",
   "scripts": {
+    "start": "node ./dist/app.js",
     "test": "node ./node_modules/mocha/bin/mocha"
   },
   "dependencies": {
