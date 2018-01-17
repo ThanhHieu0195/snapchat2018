@@ -67,6 +67,6 @@ io.on('connection', function (socket) {
    socket.on('chatSend', function (data) {
        let notice =`notice from ${data.userId}: ${data.message}`;
        console.log(notice);
-       socket.emit('chatReceive', data);
+       socket.broatcast.emit('chatReceive', data);
    });
 });
