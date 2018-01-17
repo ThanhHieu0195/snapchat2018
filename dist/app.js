@@ -63,6 +63,6 @@ io.on('connection', function (socket) {
     socket.on('chatSend', function (data) {
         var notice = "notice from " + data.userId + ": " + data.message;
         console.log(notice);
-        socket.emit('chatReceive', data);
+        socket.broadcast.emit('chatReceive', data);
     });
 });
