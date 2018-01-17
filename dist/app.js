@@ -4,16 +4,19 @@ var fs = require('fs');
 var path = require('path');
 var Cookies = require('cookies');
 var random_name = require('node-random-name');
+
 app.listen(process.env.PORT || 80, function () {
     console.log('connected to *:80');
 });
+
 function handler(req, res) {
     var cookies = new Cookies(req, res);
-    var filePath = '.' + req.url;
-    if (filePath == './') {
+    var filePath = 'dist' + req.url;
+    if (filePath == 'dist/') {
         cookies.set('userId', random_name(), { httpOnly: false });
-        filePath = './index.html';
+        filePath = 'dist/index.html';
     }
+    console.log(filePath);
     var extname = path.extname(filePath);
     var contentType = 'text/html';
     switch (extname) {
