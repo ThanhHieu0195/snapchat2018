@@ -1,68 +1,101 @@
-var app = require('http').createServer(handler);
-var io = require('socket.io')(app);
-var fs = require('fs');
-var path = require('path');
-var Cookies = require('cookies');
-var random_name = require('node-random-name');
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var http = require("http");
+var socket_io = require("socket.io");
+var fs = require("fs");
+var Cookies = require("cookies");
+var random_name = require("node-random-name");
+var ChatModel = require("./chat.model");
+var mongoose = require("mongoose");
+var app = http.createServer(handler);
+var io = socket_io(app);
 app.listen(process.env.PORT || 80, function () {
     console.log('connected to *:80');
 });
-
 function handler(req, res) {
     var cookies = new Cookies(req, res);
-    var filePath = 'dist' + req.url;
-    if (filePath == 'dist/') {
-        cookies.set('userId', random_name(), { httpOnly: false });
-        filePath = 'dist/index.html';
-    }
-    console.log(filePath);
-    var extname = path.extname(filePath);
-    var contentType = 'text/html';
-    switch (extname) {
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.css':
-            contentType = 'text/css';
-            break;
-        case '.json':
-            contentType = 'application/json';
-            break;
-        case '.png':
-            contentType = 'image/png';
-            break;
-        case '.jpg':
-            contentType = 'image/jpg';
-            break;
-        case '.wav':
-            contentType = 'audio/wav';
-            break;
-    }
-    fs.readFile(filePath, function (error, content) {
-        if (error) {
-            if (error.code == 'ENOENT') {
-                fs.readFile('./404.html', function (error, content) {
-                    res.writeHead(200, { 'Content-Type': contentType });
-                    res.end(content, 'utf-8');
-                });
-            }
-            else {
+    var filePath = req.url;
+    //index file
+    if (filePath == '/') {
+        var userId = cookies.get('userId');
+        if (userId == undefined) {
+            cookies.set('userId', random_name(), { httpOnly: false });
+        }
+        filePath = './dist/templates/formchat.html';
+        fs.readFile(filePath, function (err, data) {
+            if (err) {
+                console.log(err);
                 res.writeHead(500);
-                res.end('Sorry, check with the site admin for error: ' + error.code + ' ..\n');
                 res.end();
             }
+            else {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(data, 'utf-8');
+            }
+        });
+    }
+    else if (filePath.match(/\/api\//)) {
+        var match = filePath.match(/\/api\/(.*)/);
+        var params = match[1].split("/");
+        if (req.method == 'POST') {
+            var data = '';
+            req
+                .on('data', function (prd) {
+                data += prd;
+            })
+                .on('end', function () {
+                res.end('data: ' + data.toString());
+            });
         }
-        else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
+        if (req.method == 'GET') {
+            switch (params[0]) {
+                case 'getMessage':
+                    var chatmodel = ChatModel.chatmodel;
+                    chatmodel._model.find(function (err, data) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        else {
+                            res.writeHead(200, { 'Content-Type': 'text/json' });
+                            res.end(data.toString());
+                        }
+                    });
+                    break;
+                default:
+                    res.end('api not support');
+            }
         }
-    });
+    }
+    else if (filePath.match(/\/statics\//)) {
+        filePath = 'dist' + filePath;
+        fs.readFile(filePath, function (err, data) {
+            if (err) {
+                console.log(err);
+                res.writeHead(500);
+                res.end();
+            }
+            else {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(data, 'utf-8');
+            }
+        });
+    }
+    else {
+        res.writeHead(404);
+        res.end('Page not found');
+    }
 }
+//area socket.io
 io.on('connection', function (socket) {
     socket.on('chatSend', function (data) {
         var notice = "notice from " + data.userId + ": " + data.message;
-        console.log(notice);
-        socket.broadcast.emit('chatReceive', data);
+        var model = ChatModel.chatmodel;
+        var sc_current = socket;
+        model.insert(data.message, function () {
+            sc_current.broadcast.emit('chatReceive', data);
+        });
     });
 });
+var MONGODB_STR = 'mongodb://hieutct:123@ds159997.mlab.com:59997/snapchat';
+mongoose.connect(MONGODB_STR);
+//# sourceMappingURL=app.js.map

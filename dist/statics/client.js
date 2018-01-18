@@ -25,6 +25,12 @@
 
 
     $(document).ready(function () {
+        //generate
+        $.get( 'http://localhost/api/getMessage/', function( data ) {
+            console.log(res);
+        });
+
+         //event
         $('#mess').keyup(function (e) {
             if (e.keyCode == 13) {
                 var mess = $(this).val();
@@ -43,7 +49,7 @@
                         $('#view-mess').html('');
                 }
             }
-        })
+        });
     });
 
 })(jQuery);
